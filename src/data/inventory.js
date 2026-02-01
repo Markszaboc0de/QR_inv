@@ -49,7 +49,7 @@ const initialInventory = [
     }
 ];
 
-const STORAGE_KEY = 'qr-inventory-data';
+const STORAGE_KEY = 'qr-inventory-data-v2';
 
 /**
  * getInventory
