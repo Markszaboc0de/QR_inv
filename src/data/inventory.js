@@ -4,26 +4,47 @@
  */
 const initialInventory = [
     {
-        id: "P-101",
-        name: "M3 Hex Nut",
-        stockThreshold: 50, // Optional: for low stock warnings logic later
+        id: "H-100",
+        name: "Karaj",
+        stockThreshold: 1, // Optional: for low stock warnings logic later
         locations: [
-            { cabinetIndex: 1, drawerIndex: 1, qty: 100 },
-            { cabinetIndex: 2, drawerIndex: 5, qty: 50 }
+            { cabinetIndex: 1, drawerIndex: 1, qty: 13 },
         ]
     },
     {
-        id: "P-102",
-        name: "M5 Bolt 20mm",
+        id: "H-101",
+        name: "Csülök",
+        stockThreshold: 1, // Optional: for low stock warnings logic later
         locations: [
-            { cabinetIndex: 1, drawerIndex: 2, qty: 30 }
+            { cabinetIndex: 1, drawerIndex: 12, qty: 3 },
         ]
     },
     {
-        id: "P-103",
-        name: "Washer 1/4 inch",
+        id: "ZGY-100",
+        name: "Cseresznye",
+        locations: [
+            { cabinetIndex: 3, drawerIndex: 2, qty: 5 }
+        ]
+    },
+    {
+        id: "ZGY-101",
+        name: "Paprika",
+        locations: [
+            { cabinetIndex: 3, drawerIndex: 2, qty: 10 }
+        ]
+    },
+    {
+        id: "A-100",
+        name: "Jack Daniels",
         locations: [
             { cabinetIndex: 3, drawerIndex: 1, qty: 200 }
+        ]
+    },
+    {
+        id: "A-101",
+        name: "Málna pálinka",
+        locations: [
+            { cabinetIndex: 3, drawerIndex: 1, qty: 1 }
         ]
     }
 ];
