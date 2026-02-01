@@ -66,12 +66,38 @@ const STORAGE_KEY = 'qr-inventory-data-v2';
 export const getInventory = () => {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            return JSON.parse(stored);
+        if (!stored) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(initialInventory));
+            return initialInventory;
         }
-        // Initialize if empty
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(initialInventory));
-        return initialInventory;
+
+        const storedInventory = JSON.parse(stored);
+        let hasChanges = false;
+
+        // Map stored items for easy lookup
+        const storedMap = new Map(storedInventory.map(item => [item.id, item]));
+
+        // Merge: Iterate over code-defined inventory (Master List)
+        const mergedInventory = initialInventory.map(initialItem => {
+            const storedItem = storedMap.get(initialItem.id);
+            if (storedItem) {
+                // Item exists: Keep the stored version to preserve stock counts
+                return storedItem;
+            } else {
+                // Item is new in code: Add it!
+                hasChanges = true;
+                return initialItem;
+            }
+        });
+
+        // If items were added (hasChanges) or removed (length mismatch), update storage
+        if (hasChanges || mergedInventory.length !== storedInventory.length) {
+            console.log("Auto-syncing inventory: New items detected from code.");
+            saveInventory(mergedInventory);
+            return mergedInventory;
+        }
+
+        return storedInventory;
     } catch (e) {
         console.error("Failed to load inventory", e);
         return initialInventory;
