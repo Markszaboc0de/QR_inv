@@ -1,50 +1,69 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import ManualControls from './ManualControls';
 import QuickActions from './QuickActions';
 import { getTotalStock } from '../data/inventory';
 
-const ResultView = ({ part, onBack, onUpdateStock }) => {
-    // Default to first location or a default if empty
-    const [targetLocation, setTargetLocation] = useState(
-        part.locations[0] || { cabinetIndex: 1, drawerIndex: 1, qty: 0 }
-    );
+const ResultView = ({ inventory, onUpdateStock }) => {
+    const { partId } = useParams();
+    const navigate = useNavigate();
 
-    // Sync state if part changes
+    // Find the part from the passed inventory prop
+    const part = inventory.find(p => p.id === partId);
+
+    // Local state for target location (default to first or 1/1)
+    const [targetLocation, setTargetLocation] = useState({ cabinetIndex: 1, drawerIndex: 1, qty: 0 });
+
+    // Sync state when part loads or changes
     useEffect(() => {
-        if (part.locations.length > 0) {
+        if (part && part.locations.length > 0) {
             setTargetLocation(part.locations[0]);
         }
     }, [part]);
 
     // Derived qty for current target
-    const currentLocData = part.locations.find(
+    const currentLocData = part?.locations.find(
         l => l.cabinetIndex === targetLocation.cabinetIndex &&
             l.drawerIndex === targetLocation.drawerIndex
     );
     const currentQty = currentLocData ? currentLocData.qty : 0;
-    const totalStock = getTotalStock(part);
+    const totalStock = part ? getTotalStock(part) : 0;
 
     const handleManualUpdate = (amount, location) => {
-        // "Amount" in Manual Controls is likely an absolute SET or an ADD?
-        // Prompt says "Inputs to manually set a specific 'Amount'".
-        // "Update button to apply these specific changes."
-        // Usually "Amount" implies absolute set. 
-        // Let's assume SET.
+        if (!part) return;
         onUpdateStock(part.id, location.cabinetIndex, location.drawerIndex, amount);
-
-        // Update local view target
         setTargetLocation({ ...location, qty: amount });
     };
 
     const handleQuickAction = (delta) => {
+        if (!part) return;
         const newQty = Math.max(0, currentQty + delta);
         onUpdateStock(part.id, targetLocation.cabinetIndex, targetLocation.drawerIndex, newQty);
     };
 
+    const handleBack = () => {
+        navigate('/');
+    };
+
+    if (!part) {
+        return (
+            <div className="w-full max-w-md mx-auto p-8 bg-white rounded-xl shadow-md text-center">
+                <h2 className="text-xl font-bold text-red-600 mb-2">Part Not Found</h2>
+                <p className="text-gray-500 mb-6">ID: {partId}</p>
+                <button
+                    onClick={handleBack}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
+                >
+                    Back to Scanner
+                </button>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full max-w-md mx-auto p-4 bg-white min-h-screen sm:min-h-0 sm:rounded-xl sm:shadow-md flex flex-col">
             <button
-                onClick={onBack}
+                onClick={handleBack}
                 className="self-start text-blue-600 mb-4 flex items-center gap-1 text-sm font-medium"
             >
                 &larr; Scan Another
@@ -81,7 +100,7 @@ const ResultView = ({ part, onBack, onUpdateStock }) => {
                 onDecrement={() => handleQuickAction(-1)}
             />
 
-            {/* Current Qty Display (optional helper) */}
+            {/* Current Qty Display */}
             <div className="mt-4 text-center text-sm text-gray-400">
                 Qty in this drawer: <span className="font-semibold text-gray-600">{currentQty}</span>
             </div>
