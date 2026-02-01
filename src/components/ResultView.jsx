@@ -45,6 +45,17 @@ const ResultView = ({ inventory, onUpdateStock }) => {
         navigate('/');
     };
 
+    const handleLocationSelect = (loc) => {
+        setTargetLocation(loc);
+    };
+
+    const handleAddNewLocation = () => {
+        // Default to a likely next drawer? Or just 1/1
+        // Let's assume 1/1 for simplicity, user changes it.
+        // We use a temporary object that isn't in the list strictly speaking until saved.
+        setTargetLocation({ cabinetIndex: 1, drawerIndex: 1, qty: 0 });
+    };
+
     if (!part) {
         return (
             <div className="w-full max-w-md mx-auto p-8 bg-white rounded-xl shadow-md text-center">
@@ -78,31 +89,60 @@ const ResultView = ({ inventory, onUpdateStock }) => {
                         <span className="block text-xs text-blue-500 uppercase font-bold tracking-wider">Total Stock</span>
                         <span className="text-2xl font-bold text-blue-700">{totalStock}</span>
                     </div>
-                    <div className="bg-yellow-50 px-4 py-2 rounded-lg border border-yellow-100">
-                        <span className="block text-xs text-yellow-600 uppercase font-bold tracking-wider">Location</span>
-                        <span className="text-xl font-bold text-yellow-800">
-                            ({targetLocation.cabinetIndex} / {targetLocation.drawerIndex})
-                        </span>
-                    </div>
                 </div>
             </div>
 
-            {/* Manual Controls */}
-            <ManualControls
-                currentLocation={targetLocation}
-                onUpdate={handleManualUpdate}
-            />
+            {/* Location List */}
+            <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2 ml-1">Stock Locations</h3>
+                <div className="space-y-2">
+                    {part.locations.map((loc, idx) => (
+                        <div
+                            key={`${loc.cabinetIndex}-${loc.drawerIndex}`}
+                            onClick={() => handleLocationSelect(loc)}
+                            className={`p-3 rounded-lg border flex justify-between items-center cursor-pointer transition-colors ${loc.cabinetIndex === targetLocation.cabinetIndex && loc.drawerIndex === targetLocation.drawerIndex
+                                    ? 'bg-blue-50 border-blue-300 ring-1 ring-blue-300'
+                                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                                }`}
+                        >
+                            <span className="text-gray-700 font-medium">Cabinet {loc.cabinetIndex} / Drawer {loc.drawerIndex}</span>
+                            <span className="font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded text-sm">{loc.qty}</span>
+                        </div>
+                    ))}
 
-            {/* Quick Actions */}
-            <QuickActions
-                locationLabel={`(${targetLocation.cabinetIndex} / ${targetLocation.drawerIndex})`}
-                onIncrement={() => handleQuickAction(1)}
-                onDecrement={() => handleQuickAction(-1)}
-            />
+                    <button
+                        onClick={handleAddNewLocation}
+                        className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 text-sm font-medium hover:border-blue-400 hover:text-blue-500 transition-colors"
+                    >
+                        + Add New Location
+                    </button>
+                </div>
+            </div>
 
-            {/* Current Qty Display */}
-            <div className="mt-4 text-center text-sm text-gray-400">
-                Qty in this drawer: <span className="font-semibold text-gray-600">{currentQty}</span>
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <div className="mb-4 flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Editing Target</span>
+                    <span className="text-sm font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded">
+                        ({targetLocation.cabinetIndex} / {targetLocation.drawerIndex})
+                    </span>
+                </div>
+
+                {/* Manual Controls */}
+                <ManualControls
+                    currentLocation={targetLocation}
+                    onUpdate={handleManualUpdate}
+                />
+
+                {/* Quick Actions */}
+                <QuickActions
+                    locationLabel={`(${targetLocation.cabinetIndex} / ${targetLocation.drawerIndex})`}
+                    onIncrement={() => handleQuickAction(1)}
+                    onDecrement={() => handleQuickAction(-1)}
+                />
+                {/* Current Qty Display */}
+                <div className="mt-4 text-center text-sm text-gray-400 border-t border-gray-200 pt-3">
+                    Qty in this drawer: <span className="font-semibold text-gray-600">{currentQty}</span>
+                </div>
             </div>
         </div>
     );
