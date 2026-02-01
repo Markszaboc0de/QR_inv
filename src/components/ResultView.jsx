@@ -63,10 +63,24 @@ const ResultView = ({ inventory, onUpdateStock }) => {
                 <p className="text-gray-500 mb-6">ID: {partId}</p>
                 <button
                     onClick={handleBack}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold mb-4"
                 >
                     Back to Scanner
                 </button>
+
+                <div className="border-t pt-4">
+                    <p className="text-sm text-gray-500 mb-2">Don't see your new items?</p>
+                    <button
+                        onClick={() => {
+                            if (confirm('This will wipe any custom changes and reload the default database from code. Continue?')) {
+                                import('../data/inventory').then(mod => mod.resetInventory());
+                            }
+                        }}
+                        className="text-red-500 underline text-sm"
+                    >
+                        Reset Database to Defaults
+                    </button>
+                </div>
             </div>
         );
     }
@@ -101,8 +115,8 @@ const ResultView = ({ inventory, onUpdateStock }) => {
                             key={`${loc.cabinetIndex}-${loc.drawerIndex}`}
                             onClick={() => handleLocationSelect(loc)}
                             className={`p-3 rounded-lg border flex justify-between items-center cursor-pointer transition-colors ${loc.cabinetIndex === targetLocation.cabinetIndex && loc.drawerIndex === targetLocation.drawerIndex
-                                    ? 'bg-blue-50 border-blue-300 ring-1 ring-blue-300'
-                                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                                ? 'bg-blue-50 border-blue-300 ring-1 ring-blue-300'
+                                : 'bg-white border-gray-200 hover:bg-gray-50'
                                 }`}
                         >
                             <span className="text-gray-700 font-medium">Cabinet {loc.cabinetIndex} / Drawer {loc.drawerIndex}</span>

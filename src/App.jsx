@@ -59,6 +59,21 @@ const ScanPage = ({ inventory }) => {
           {scanError}
         </div>
       )}
+
+      <div className="mt-8 text-center">
+        <button
+          onClick={() => {
+            import('./data/inventory').then(mod => {
+              if (confirm('Reset all data to defaults? This cannot be undone.')) {
+                mod.resetInventory();
+              }
+            });
+          }}
+          className="text-xs text-gray-400 underline hover:text-red-500"
+        >
+          Reset Database
+        </button>
+      </div>
     </div>
   );
 };
