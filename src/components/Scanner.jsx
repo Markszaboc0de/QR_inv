@@ -46,10 +46,10 @@ const Scanner = ({ onScanSuccess, onScanFailure }) => {
 
     return (
         <div className="w-full max-w-md mx-auto p-4 bg-white rounded-xl shadow-md">
-            <h2 className="text-xl font-bold text-center mb-4 text-gray-800">Scan QR Code</h2>
+            <h2 className="text-xl font-bold text-center mb-4 text-gray-800">QR Kód Beolvasása</h2>
             <div id="reader" className="w-full rounded-lg overflow-hidden"></div>
             <p className="text-sm text-gray-500 text-center mt-2">
-                Point camera at a part QR code
+                Irányítsa a kamerát a QR kódra
             </p>
         </div>
     );

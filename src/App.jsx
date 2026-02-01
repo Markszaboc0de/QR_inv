@@ -35,7 +35,7 @@ const ScanPage = ({ inventory }) => {
 
   return (
     <div className="w-full max-w-md">
-      <h1 className="text-3xl font-bold text-center mb-8 text-blue-900">Inventory Scanner</h1>
+      <h1 className="text-3xl font-bold text-center mb-8 text-blue-900">Leltár Szkener</h1>
       <Scanner
         onScanSuccess={handleScanSuccess}
         onScanFailure={(err) => { /* ignore minor scan errors */ }}
@@ -43,10 +43,10 @@ const ScanPage = ({ inventory }) => {
 
       {/* Debug / Fallback Input */}
       <div className="mt-8 p-4 bg-white rounded-lg shadow opacity-80">
-        <p className="text-xs text-center text-gray-400 mb-2">Debug Manual Entry</p>
+        <p className="text-xs text-center text-gray-400 mb-2">Kézi ID Bevitel (Teszt)</p>
         <input
           type="text"
-          placeholder="Enter ID (e.g. P-101)"
+          placeholder="ID Megadása (pl. P-101)"
           className="w-full border p-2 rounded text-center"
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleScanSuccess(e.currentTarget.value);
@@ -64,14 +64,14 @@ const ScanPage = ({ inventory }) => {
         <button
           onClick={() => {
             import('./data/inventory').then(mod => {
-              if (confirm('Reset all data to defaults? This cannot be undone.')) {
+              if (confirm('Minden adat visszaállítása alaphelyzetbe? Ezt nem lehet visszavonni.')) {
                 mod.resetInventory();
               }
             });
           }}
           className="text-xs text-gray-400 underline hover:text-red-500"
         >
-          Reset Database
+          Adatbázis Visszaállítása
         </button>
       </div>
     </div>

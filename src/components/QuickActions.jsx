@@ -4,7 +4,7 @@ const QuickActions = ({ onIncrement, onDecrement, locationLabel }) => {
     return (
         <div className="mt-4">
             <div className="flex justify-center items-center gap-2 mb-2">
-                <span className="text-sm text-gray-500">Quick Edit at {locationLabel}</span>
+                <span className="text-sm text-gray-500">Gyors Szerkesztés itt: {locationLabel}</span>
             </div>
             <div className="flex gap-4">
                 <button

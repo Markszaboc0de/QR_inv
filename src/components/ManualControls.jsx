@@ -20,11 +20,11 @@ const ManualControls = ({ currentLocation, onUpdate }) => {
 
     return (
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
-            <h3 className="font-semibold text-gray-700 mb-2">Manual Adjustment</h3>
+            <h3 className="font-semibold text-gray-700 mb-2">Kézi Módosítás</h3>
 
             <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Cabinet #</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Hűtő #</label>
                     <input
                         type="number"
                         value={cabinet}
@@ -34,7 +34,7 @@ const ManualControls = ({ currentLocation, onUpdate }) => {
                     />
                 </div>
                 <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Drawer #</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Fiók #</label>
                     <input
                         type="number"
                         value={drawer}
@@ -47,24 +47,24 @@ const ManualControls = ({ currentLocation, onUpdate }) => {
 
             <div className="flex gap-3 items-end">
                 <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Set Qty To</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Mennyiség Beállítása</label>
                     <input
                         type="number"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         className="w-full p-2 border rounded"
-                        placeholder="New Qty"
+                        placeholder="Új Menny."
                     />
                 </div>
                 <button
                     onClick={handleUpdate}
                     className="bg-blue-600 text-white px-4 py-2 rounded font-semibold active:bg-blue-700 h-[42px]"
                 >
-                    Update
+                    Frissítés
                 </button>
             </div>
             <p className="text-xs text-gray-400 mt-2">
-                "Update" sets the absolute quantity for the specified location.
+                A "Frissítés" beállítja a pontos mennyiséget a megadott helyen.
             </p>
         </div>
     );
