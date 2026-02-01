@@ -24,7 +24,15 @@ const initialInventory = [
         name: "Szűzpecsenye",
         stockThreshold: 1, // Optional: for low stock warnings logic later
         locations: [
-            { cabinetIndex: 1, drawerIndex: 5, qty: 13 },
+            { cabinetIndex: 1, drawerIndex: 5, qty: 2 },
+        ]
+    },
+    {
+        id: "H-103",
+        name: "Oldalas",
+        stockThreshold: 1, // Optional: for low stock warnings logic later
+        locations: [
+            { cabinetIndex: 2, drawerIndex: 5, qty: 5 },
         ]
     },
     {
