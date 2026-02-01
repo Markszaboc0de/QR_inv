@@ -9,27 +9,32 @@ const Scanner = ({ onScanSuccess, onScanFailure }) => {
         // Prevent double initialization in React Strict Mode
         if (scannerInstance) return;
 
-        const scanner = new Html5QrcodeScanner(
-            "reader",
-            {
-                fps: 10,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
-            },
-            /* verbose= */ false
-        );
+        try {
+            const scanner = new Html5QrcodeScanner(
+                "reader",
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                },
+                /* verbose= */ false
+            );
 
-        scanner.render(
-            (decodedText) => {
-                onScanSuccess(decodedText);
-                scanner.clear(); // Stop scanning after success
-            },
-            (error) => {
-                if (onScanFailure) onScanFailure(error);
-            }
-        );
+            scanner.render(
+                (decodedText) => {
+                    onScanSuccess(decodedText);
+                    scanner.clear(); // Stop scanning after success
+                },
+                (error) => {
+                    if (onScanFailure) onScanFailure(error);
+                }
+            );
 
-        setScannerInstance(scanner);
+            setScannerInstance(scanner);
+        } catch (err) {
+            console.error("Scanner init error:", err);
+            if (onScanFailure) onScanFailure(err);
+        }
 
         // Cleanup function
         return () => {
