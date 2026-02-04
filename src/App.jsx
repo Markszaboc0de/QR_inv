@@ -66,9 +66,13 @@ const ScanPage = ({ inventory }) => {
 
 function App() {
   const [inventory, setInventory] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchInventory().then(data => setInventory(data));
+    fetchInventory().then(data => {
+      setInventory(data);
+      setIsLoading(false);
+    });
   }, []);
 
   const handleUpdateStock = (partId, cabinetIdx, drawerIdx, newQty) => {
@@ -76,6 +80,18 @@ function App() {
       setInventory(updated);
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 font-sans">
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700">Adatbázis Betöltése...</h2>
+          <p className="text-sm text-gray-500 mt-2">Kapcsolódás a Google Táblázathoz</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter basename="/QR_inv">
