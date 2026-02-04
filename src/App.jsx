@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import Scanner from './components/Scanner';
 import ResultView from './components/ResultView';
-import { getInventory, updatePartStock, getPartById } from './data/inventory';
+import { fetchInventory, updatePartStock, getPartById, resetInventory } from './data/inventory';
 
 // Wrapper component to handle scan logic with navigation
 const ScanPage = ({ inventory }) => {
@@ -63,11 +63,9 @@ const ScanPage = ({ inventory }) => {
       <div className="mt-8 text-center">
         <button
           onClick={() => {
-            import('./data/inventory').then(mod => {
-              if (confirm('Minden adat visszaállítása alaphelyzetbe? Ezt nem lehet visszavonni.')) {
-                mod.resetInventory();
-              }
-            });
+            if (confirm('Minden adat visszaállítása alaphelyzetbe? Ezt nem lehet visszavonni.')) {
+              resetInventory();
+            }
           }}
           className="text-xs text-gray-400 underline hover:text-red-500"
         >
@@ -82,12 +80,13 @@ function App() {
   const [inventory, setInventory] = useState([]);
 
   useEffect(() => {
-    setInventory(getInventory());
+    fetchInventory().then(data => setInventory(data));
   }, []);
 
   const handleUpdateStock = (partId, cabinetIdx, drawerIdx, newQty) => {
-    const updatedInventory = updatePartStock(partId, cabinetIdx, drawerIdx, newQty);
-    setInventory(updatedInventory);
+    updatePartStock(inventory, partId, cabinetIdx, drawerIdx, newQty).then(updated => {
+      setInventory(updated);
+    });
   };
 
   return (

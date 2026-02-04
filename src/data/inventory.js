@@ -73,109 +73,126 @@ const initialInventory = [
     }
 ];
 
-const STORAGE_KEY = 'qr-inventory-data-v2';
+// Google Apps Script Web App URL
+const API_URL = "https://script.google.com/macros/s/AKfycbyAuFLau4Go0JvyggKznsnjZK1yK1zyiOE054fQMndTd9GduHrG4YvevWL3dnkbC9T6gA/exec";
 
 /**
- * getInventory
- * Retrieves inventory from localStorage or returns initial mock data.
+ * syncPartToRemote
+ * Uploads a single item to the Google Sheet.
  */
-export const getInventory = () => {
+const syncPartToRemote = async (part) => {
     try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (!stored) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(initialInventory));
-            return initialInventory;
-        }
-
-        const storedInventory = JSON.parse(stored);
-        let hasChanges = false;
-
-        // Map stored items for easy lookup
-        const storedMap = new Map(storedInventory.map(item => [item.id, item]));
-
-        // Merge: Iterate over code-defined inventory (Master List)
-        const mergedInventory = initialInventory.map(initialItem => {
-            const storedItem = storedMap.get(initialItem.id);
-            if (storedItem) {
-                // Item exists: Keep the stored version to preserve stock counts
-                return storedItem;
-            } else {
-                // Item is new in code: Add it!
-                hasChanges = true;
-                return initialItem;
-            }
+        await fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: JSON.stringify({
+                id: part.id,
+                name: part.name,
+                stockThreshold: part.stockThreshold,
+                locations: part.locations
+            })
         });
-
-        // If items were added (hasChanges) or removed (length mismatch), update storage
-        if (hasChanges || mergedInventory.length !== storedInventory.length) {
-            console.log("Auto-syncing inventory: New items detected from code.");
-            saveInventory(mergedInventory);
-            return mergedInventory;
-        }
-
-        return storedInventory;
     } catch (e) {
-        console.error("Failed to load inventory", e);
-        return initialInventory;
+        console.error("Failed to sync part to remote", part.id, e);
     }
 };
 
 /**
- * saveInventory
- * Saves the current inventory state to localStorage.
+ * seedRemoteInventory
+ * Pushes all items from initialInventory to the remote sheet.
  */
-export const saveInventory = (inventory) => {
+const seedRemoteInventory = async () => {
+    console.log("Seeding remote inventory...");
+    // We execute these sequentially to avoid overwhelming the GAS lock/rate limits
+    for (const item of initialInventory) {
+        await syncPartToRemote(item);
+        console.log("Seeded:", item.id);
+    }
+    console.log("Seeding complete.");
+};
+
+/**
+ * fetchInventory
+ * Fetches inventory from Google Sheets and merges with local definitions.
+ */
+export const fetchInventory = async () => {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+        const response = await fetch(`${API_URL}?action=read`);
+        const data = await response.json();
+
+        // If sheet is empty or error, default to initial
+        if (!Array.isArray(data)) {
+            console.warn("API returned invalid data, using default.");
+            return initialInventory;
+        }
+
+        if (data.length === 0) {
+            console.log("Sheet empty, using default and auto-seeding.");
+            // Trigger background seed - do not await to keep UI fast
+            seedRemoteInventory();
+            return initialInventory;
+        }
+
+        // Map sheet data by ID for merging
+        const sheetMap = new Map(data.map(item => [item.id, item]));
+
+        // Merge: Master List (Code) + Stock Counts (Sheet)
+        const mergedInventory = initialInventory.map(initialItem => {
+            const sheetItem = sheetMap.get(initialItem.id);
+            if (sheetItem) {
+                // Determine valid locations from sheet, but maybe structure changed?
+                // For now, trust the sheet's location data if ID matches.
+                return { ...initialItem, locations: sheetItem.locations };
+            }
+            return initialItem; // New item in code not yet in sheet
+        });
+
+        return mergedInventory;
     } catch (e) {
-        console.error("Failed to save inventory", e);
+        console.error("Failed to load inventory from API", e);
+        return initialInventory; // Offline fallback
     }
 };
 
 /**
  * updatePartStock
- * Updates the stock for a specific part in a specific location.
- * Defines location by cabinetIndex and drawerIndex.
+ * Sends update to Google Sheet and returns the optimistically updated inventory.
+ * NOW ASYNC.
  */
-export const updatePartStock = (partId, cabinetIdx, drawerIdx, newQty) => {
-    const inventory = getInventory();
-    const partIndex = inventory.findIndex(p => p.id === partId);
+export const updatePartStock = async (currentInventory, partId, cabinetIdx, drawerIdx, newQty) => {
+    const partIndex = currentInventory.findIndex(p => p.id === partId);
+    if (partIndex === -1) return currentInventory;
 
-    if (partIndex === -1) return inventory; // Part not found
-
-    const part = { ...inventory[partIndex] };
+    const part = { ...currentInventory[partIndex] };
     const locIndex = part.locations.findIndex(
         l => l.cabinetIndex === cabinetIdx && l.drawerIndex === drawerIdx
     );
 
     if (locIndex !== -1) {
-        // Update existing location
         const newLocations = [...part.locations];
         newLocations[locIndex] = { ...newLocations[locIndex], qty: newQty };
-
-        // If qty is 0, arguably we could remove the location, but let's keep it for now
-        // so user can add back to it easily. OR we removing if 0?
-        // Requirement implies "Take 1", so going to 0 is possible.
-        // Let's keep it.
-
         part.locations = newLocations;
     } else {
-        // Add new location if qty > 0
         if (newQty > 0) {
             part.locations = [...part.locations, { cabinetIndex: cabinetIdx, drawerIndex: drawerIdx, qty: newQty }];
         }
     }
 
-    const newInventory = [...inventory];
+    // Optimistic Update locally
+    const newInventory = [...currentInventory];
     newInventory[partIndex] = part;
 
-    saveInventory(newInventory);
+    // Send to Backend
+    syncPartToRemote(part);
+
     return newInventory;
 };
 
 /**
  * getPartById
- * Helper to find a wrapper matching the ID.
  */
 export const getPartById = (inventory, id) => {
     return inventory.find(p => p.id === id);
@@ -183,9 +200,23 @@ export const getPartById = (inventory, id) => {
 
 /**
  * getTotalStock
- * Helper to sum up all locations.
  */
 export const getTotalStock = (part) => {
     if (!part || !part.locations) return 0;
     return part.locations.reduce((acc, loc) => acc + loc.qty, 0);
+};
+
+/**
+ * resetInventory
+ * Sends init command to sheet and then re-seeds.
+ */
+export const resetInventory = async () => {
+    try {
+        console.log("Resetting inventory...");
+        await fetch(`${API_URL}?action=init`);
+        await seedRemoteInventory();
+        window.location.reload();
+    } catch (e) {
+        console.error("Failed to reset inventory", e);
+    }
 };

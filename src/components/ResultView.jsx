@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ManualControls from './ManualControls';
 import QuickActions from './QuickActions';
-import { getTotalStock } from '../data/inventory';
+import { getTotalStock, resetInventory } from '../data/inventory';
 
 const ResultView = ({ inventory, onUpdateStock }) => {
     const { partId } = useParams();
@@ -73,7 +73,7 @@ const ResultView = ({ inventory, onUpdateStock }) => {
                     <button
                         onClick={() => {
                             if (confirm('Ez töröl minden egyéni változtatást és újratölti az alap adatbázist. Folytatja?')) {
-                                import('../data/inventory').then(mod => mod.resetInventory());
+                                resetInventory();
                             }
                         }}
                         className="text-red-500 underline text-sm"
