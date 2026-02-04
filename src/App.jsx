@@ -67,6 +67,7 @@ const ScanPage = ({ inventory }) => {
 function App() {
   const [inventory, setInventory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     fetchInventory().then(data => {
