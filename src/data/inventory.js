@@ -2,117 +2,11 @@
  * initialInventory
  * Hardcoded mock data to seed the application.
  */
-const initialInventory = [
-    {
-        id: "H-100",
-        name: "Karaj",
-        stockThreshold: 1, // Optional: for low stock warnings logic later
-        locations: [
-            { cabinetIndex: 1, drawerIndex: 1, qty: 13 },
-        ]
-    },
-    {
-        id: "H-101",
-        name: "Csülök",
-        stockThreshold: 1, // Optional: for low stock warnings logic later
-        locations: [
-            { cabinetIndex: 1, drawerIndex: 12, qty: 3 },
-        ]
-    },
-    {
-        id: "H-102",
-        name: "Szűzpecsenye",
-        stockThreshold: 1, // Optional: for low stock warnings logic later
-        locations: [
-            { cabinetIndex: 1, drawerIndex: 5, qty: 2 },
-        ]
-    },
-    {
-        id: "H-103",
-        name: "Oldalas",
-        stockThreshold: 1, // Optional: for low stock warnings logic later
-        locations: [
-            { cabinetIndex: 2, drawerIndex: 5, qty: 5 },
-        ]
-    },
-    {
-        id: "H-104",
-        name: "Lapocka",
-        stockThreshold: 1, // Optional: for low stock warnings logic later
-        locations: [
-            { cabinetIndex: 2, drawerIndex: 5, qty: 6 },
-        ]
-    },
-    {
-        id: "ZGY-100",
-        name: "Cseresznye",
-        locations: [
-            { cabinetIndex: 3, drawerIndex: 2, qty: 5 }
-        ]
-    },
-    {
-        id: "ZGY-101",
-        name: "Paprika",
-        locations: [
-            { cabinetIndex: 3, drawerIndex: 2, qty: 10 }
-        ]
-    },
-    {
-        id: "A-100",
-        name: "Jack Daniels",
-        locations: [
-            { cabinetIndex: 3, drawerIndex: 1, qty: 200 }
-        ]
-    },
-    {
-        id: "A-101",
-        name: "Málna pálinka",
-        locations: [
-            { cabinetIndex: 3, drawerIndex: 1, qty: 1 }
-        ]
-    }
-];
+const initialInventory = [];
 
 // Google Apps Script Web App URL
 const API_URL = "https://script.google.com/macros/s/AKfycbyAuFLau4Go0JvyggKznsnjZK1yK1zyiOE054fQMndTd9GduHrG4YvevWL3dnkbC9T6gA/exec";
 
-/**
- * syncPartToRemote
- * Uploads a single item to the Google Sheet.
- */
-const syncPartToRemote = async (part) => {
-    try {
-        await fetch(`${API_URL}?action=update`, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'text/plain',
-            },
-            body: JSON.stringify({
-                id: part.id,
-                name: part.name,
-                stockThreshold: part.stockThreshold,
-                locations: part.locations
-            })
-        });
-    } catch (e) {
-        console.error("Failed to sync part to remote", part.id, e);
-    }
-};
-
-/**
- * seedRemoteInventory
- * Pushes all items from initialInventory to the remote sheet.
- */
-const seedRemoteInventory = async () => {
-    console.log("Seeding remote inventory...");
-    // We execute these sequentially to avoid overwhelming the GAS lock/rate limits
-    for (const item of initialInventory) {
-        await syncPartToRemote(item);
-        console.log("Seeded:", item.id);
-    }
-    console.log("Seeding complete.");
-};
 
 /**
  * fetchInventory
@@ -130,10 +24,8 @@ export const fetchInventory = async () => {
         }
 
         if (data.length === 0) {
-            console.log("Sheet empty, using default and auto-seeding.");
-            // Trigger background seed - do not await to keep UI fast
-            seedRemoteInventory();
-            return initialInventory;
+            console.log("Sheet empty.");
+            return [];
         }
 
         // Map sheet data by ID for merging
@@ -186,7 +78,23 @@ export const updatePartStock = async (currentInventory, partId, cabinetIdx, draw
     newInventory[partIndex] = part;
 
     // Send to Backend
-    syncPartToRemote(part);
+    try {
+        await fetch(`${API_URL}?action=update`, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'text/plain',
+            },
+            body: JSON.stringify({
+                id: part.id,
+                name: part.name,
+                stockThreshold: part.stockThreshold,
+                locations: part.locations
+            })
+        });
+    } catch (e) {
+        console.error("Failed to sync part to remote", part.id, e);
+    }
 
     return newInventory;
 };
@@ -206,17 +114,3 @@ export const getTotalStock = (part) => {
     return part.locations.reduce((acc, loc) => acc + loc.qty, 0);
 };
 
-/**
- * resetInventory
- * Sends init command to sheet and then re-seeds.
- */
-export const resetInventory = async () => {
-    try {
-        console.log("Resetting inventory...");
-        await fetch(`${API_URL}?action=init`);
-        await seedRemoteInventory();
-        window.location.reload();
-    } catch (e) {
-        console.error("Failed to reset inventory", e);
-    }
-};

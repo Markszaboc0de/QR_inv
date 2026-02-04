@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import Scanner from './components/Scanner';
 import ResultView from './components/ResultView';
-import { fetchInventory, updatePartStock, getPartById, resetInventory } from './data/inventory';
+import { fetchInventory, updatePartStock, getPartById } from './data/inventory';
 
 // Wrapper component to handle scan logic with navigation
 const ScanPage = ({ inventory }) => {
@@ -60,18 +60,6 @@ const ScanPage = ({ inventory }) => {
         </div>
       )}
 
-      <div className="mt-8 text-center">
-        <button
-          onClick={() => {
-            if (confirm('Minden adat visszaállítása alaphelyzetbe? Ezt nem lehet visszavonni.')) {
-              resetInventory();
-            }
-          }}
-          className="text-xs text-gray-400 underline hover:text-red-500"
-        >
-          Adatbázis Visszaállítása
-        </button>
-      </div>
     </div>
   );
 };
