@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useParams } from 'react-rout
 import Scanner from './components/Scanner';
 import ResultView from './components/ResultView';
 import { fetchInventory, updatePartStock, getPartById, syncPartToRemote } from './data/inventory';
+import Dashboard from './components/Dashboard';
 
 // Wrapper component to handle scan logic with navigation
 const ScanPage = ({ inventory }) => {
@@ -111,6 +112,7 @@ function App() {
       <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 font-sans">
         <Routes>
           <Route path="/" element={<ScanPage inventory={inventory} />} />
+          <Route path="/dashboard" element={<Dashboard inventory={inventory} />} />
           <Route
             path="/:partId"
             element={
