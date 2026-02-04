@@ -4,7 +4,7 @@ import ManualControls from './ManualControls';
 import QuickActions from './QuickActions';
 import { getTotalStock } from '../data/inventory';
 
-const ResultView = ({ inventory, onUpdateStock }) => {
+const ResultView = ({ inventory, onUpdateStock, isSyncing }) => {
     const { partId } = useParams();
     const navigate = useNavigate();
 
@@ -140,8 +140,21 @@ const ResultView = ({ inventory, onUpdateStock }) => {
                     onIncrement={() => handleQuickAction(1)}
                     onDecrement={() => handleQuickAction(-1)}
                 />
+
+                {/* Sync Indicator */}
+                <div className="mt-4 text-center text-sm text-gray-400 border-t border-gray-200 pt-3 flex justify-center items-center gap-2">
+                    {isSyncing ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                            <span className="text-blue-500 text-xs">Adataim mentése...</span>
+                        </>
+                    ) : (
+                        <span className="text-green-500 text-xs font-medium">✓ Mentve</span>
+                    )}
+                </div>
+
                 {/* Current Qty Display */}
-                <div className="mt-4 text-center text-sm text-gray-400 border-t border-gray-200 pt-3">
+                <div className="mt-1 text-center text-sm text-gray-400">
                     Mennyiség itt: <span className="font-semibold text-gray-600">{currentQty}</span>
                 </div>
             </div>

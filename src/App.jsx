@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import Scanner from './components/Scanner';
 import ResultView from './components/ResultView';
-import { fetchInventory, updatePartStock, getPartById } from './data/inventory';
+import { fetchInventory, updatePartStock, getPartById, syncPartToRemote } from './data/inventory';
 
 // Wrapper component to handle scan logic with navigation
 const ScanPage = ({ inventory }) => {
@@ -76,9 +76,21 @@ function App() {
   }, []);
 
   const handleUpdateStock = (partId, cabinetIdx, drawerIdx, newQty) => {
-    updatePartStock(inventory, partId, cabinetIdx, drawerIdx, newQty).then(updated => {
-      setInventory(updated);
-    });
+    // 1. Calculate new state immediately (Synchronous)
+    const updatedInventory = updatePartStock(inventory, partId, cabinetIdx, drawerIdx, newQty);
+
+    // 2. Update UI (Optimistic)
+    setInventory(updatedInventory);
+
+    // 3. Trigger Background Sync
+    setIsSyncing(true);
+    const updatedPart = updatedInventory.find(p => p.id === partId);
+    if (updatedPart) {
+      syncPartToRemote(updatedPart)
+        .finally(() => setIsSyncing(false));
+    } else {
+      setIsSyncing(false);
+    }
   };
 
   if (isLoading) {
@@ -104,6 +116,7 @@ function App() {
               <ResultView
                 inventory={inventory}
                 onUpdateStock={handleUpdateStock}
+                isSyncing={isSyncing}
               />
             }
           />

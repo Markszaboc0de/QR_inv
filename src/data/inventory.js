@@ -41,7 +41,36 @@ export const fetchInventory = async () => {
  * Sends update to Google Sheet and returns the optimistically updated inventory.
  * NOW ASYNC.
  */
-export const updatePartStock = async (currentInventory, partId, cabinetIdx, drawerIdx, newQty) => {
+/**
+ * syncPartToRemote
+ * Uploads a single item to the Google Sheet.
+ */
+export const syncPartToRemote = async (part) => {
+    try {
+        await fetch(`${API_URL}?action=update`, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'text/plain',
+            },
+            body: JSON.stringify({
+                id: part.id,
+                name: part.name,
+                stockThreshold: part.stockThreshold,
+                locations: part.locations
+            })
+        });
+    } catch (e) {
+        console.error("Failed to sync part to remote", part.id, e);
+    }
+};
+
+/**
+ * updatePartStock
+ * Updates the stock for a specific part in a specific location (LOCALLY).
+ * Purely synchronous state update for optimistic UI.
+ */
+export const updatePartStock = (currentInventory, partId, cabinetIdx, drawerIdx, newQty) => {
     const partIndex = currentInventory.findIndex(p => p.id === partId);
     if (partIndex === -1) return currentInventory;
 
@@ -60,28 +89,8 @@ export const updatePartStock = async (currentInventory, partId, cabinetIdx, draw
         }
     }
 
-    // Optimistic Update locally
     const newInventory = [...currentInventory];
     newInventory[partIndex] = part;
-
-    // Send to Backend
-    try {
-        await fetch(`${API_URL}?action=update`, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'text/plain',
-            },
-            body: JSON.stringify({
-                id: part.id,
-                name: part.name,
-                stockThreshold: part.stockThreshold,
-                locations: part.locations
-            })
-        });
-    } catch (e) {
-        console.error("Failed to sync part to remote", part.id, e);
-    }
 
     return newInventory;
 };
