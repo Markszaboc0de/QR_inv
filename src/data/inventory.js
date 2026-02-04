@@ -28,21 +28,8 @@ export const fetchInventory = async () => {
             return [];
         }
 
-        // Map sheet data by ID for merging
-        const sheetMap = new Map(data.map(item => [item.id, item]));
-
-        // Merge: Master List (Code) + Stock Counts (Sheet)
-        const mergedInventory = initialInventory.map(initialItem => {
-            const sheetItem = sheetMap.get(initialItem.id);
-            if (sheetItem) {
-                // Determine valid locations from sheet, but maybe structure changed?
-                // For now, trust the sheet's location data if ID matches.
-                return { ...initialItem, locations: sheetItem.locations };
-            }
-            return initialItem; // New item in code not yet in sheet
-        });
-
-        return mergedInventory;
+        // Since initialInventory is empty, we now rely 100% on the sheet data.
+        return data;
     } catch (e) {
         console.error("Failed to load inventory from API", e);
         return initialInventory; // Offline fallback
