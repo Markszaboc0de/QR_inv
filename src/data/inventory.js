@@ -96,6 +96,21 @@ export const updatePartStock = (currentInventory, partId, cabinetIdx, drawerIdx,
 };
 
 /**
+ * addPart
+ * Adds a new part to the inventory (LOCALLY).
+ * Purely synchronous state update.
+ */
+export const addPart = (currentInventory, newItem) => {
+    // Check for duplicate ID
+    if (currentInventory.some(p => p.id === newItem.id)) {
+        throw new Error(`Már létezik alkatrész ezzel az ID-val: ${newItem.id}`);
+    }
+
+    const newInventory = [...currentInventory, newItem];
+    return newInventory;
+};
+
+/**
  * getPartById
  */
 export const getPartById = (inventory, id) => {

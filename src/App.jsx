@@ -1,69 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useParams } from 'react-router-dom';
-import Scanner from './components/Scanner';
 import ResultView from './components/ResultView';
-import { fetchInventory, updatePartStock, getPartById, syncPartToRemote } from './data/inventory';
+import { fetchInventory, updatePartStock, getPartById, syncPartToRemote, addPart } from './data/inventory';
+import AddItem from './components/AddItem';
 import Dashboard from './components/Dashboard';
 
 // Wrapper component to handle scan logic with navigation
-const ScanPage = ({ inventory }) => {
-  const navigate = useNavigate();
-  const [scanError, setScanError] = useState(null);
-
-  const handleScanSuccess = (decodedText) => {
-    const cleanId = decodedText.trim();
-    // Validate existence before navigating? 
-    // The user wants deep links, so they might navigate to a link that doesn't exist yet.
-    // But for scanning, we usually want to know if it's valid. 
-    // Let's navigate regardless, and ResultView handles "Unknown Part".
-    // OR: Check valid and error if not found?
-
-    // User requested: "qr code would contain the link and the id like this: .../P-101"
-    // So if they scan a raw ID "P-101", we go to /P-101.
-    // If they scan a full URL "https://.../QR_inv/P-101", we need to extract ID?
-    // The html5-qrcode scanner usually just gives the string content.
-
-    let targetId = cleanId;
-    // Handle specific full URL case if needed, but for now assume ID or relative.
-    // If the QR code contains the full link, html5-qrcode returns the full link.
-    if (cleanId.includes('/QR_inv/')) {
-      const parts = cleanId.split('/QR_inv/');
-      targetId = parts[1];
-    }
-
-    navigate(`/${targetId}`);
-  };
-
-  return (
-    <div className="w-full max-w-md">
-      <h1 className="text-3xl font-bold text-center mb-8 text-blue-900">Leltár Szkener</h1>
-      <Scanner
-        onScanSuccess={handleScanSuccess}
-        onScanFailure={(err) => { /* ignore minor scan errors */ }}
-      />
-
-      {/* Debug / Fallback Input */}
-      <div className="mt-8 p-4 bg-white rounded-lg shadow opacity-80">
-        <p className="text-xs text-center text-gray-400 mb-2">Kézi ID Bevitel (Teszt)</p>
-        <input
-          type="text"
-          placeholder="ID Megadása (pl. P-101)"
-          className="w-full border p-2 rounded text-center"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleScanSuccess(e.currentTarget.value);
-          }}
-        />
-      </div>
-
-      {scanError && (
-        <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-center font-medium border border-red-200">
-          {scanError}
-        </div>
-      )}
-
-    </div>
-  );
-};
 
 function App() {
   const [inventory, setInventory] = useState([]);
@@ -95,6 +37,19 @@ function App() {
     }
   };
 
+  const handleAddPart = (newItem) => {
+    // 1. Calculate new state immediately
+    const updatedInventory = addPart(inventory, newItem);
+
+    // 2. Update UI
+    setInventory(updatedInventory);
+
+    // 3. Trigger Background Sync
+    setIsSyncing(true);
+    syncPartToRemote(newItem)
+      .finally(() => setIsSyncing(false));
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 font-sans">
@@ -111,7 +66,7 @@ function App() {
     <BrowserRouter basename="/QR_inv">
       <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 font-sans">
         <Routes>
-          <Route path="/" element={<ScanPage inventory={inventory} />} />
+          <Route path="/" element={<AddItem inventory={inventory} onAdd={handleAddPart} />} />
           <Route path="/dashboard" element={<Dashboard inventory={inventory} />} />
           <Route
             path="/:partId"
