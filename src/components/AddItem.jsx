@@ -86,7 +86,7 @@ const AddItem = ({ inventory, onAdd }) => {
                         value={formData.id}
                         onChange={handleChange}
                         className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                        placeholder="pl. R-202"
+                        placeholder="pl. H-199"
                     />
                 </div>
 
@@ -98,7 +98,7 @@ const AddItem = ({ inventory, onAdd }) => {
                         value={formData.name}
                         onChange={handleChange}
                         className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                        placeholder="pl. Csapágy"
+                        placeholder="Pl.: Oldalas"
                     />
                 </div>
 
